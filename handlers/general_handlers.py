@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import Text
 from create_bot import bot, authentication
 from keyboards import start_kb, exit_kb
 from database.orm import delete_row
@@ -55,4 +55,4 @@ def register_general_handlers(dp: Dispatcher):
     dp.register_message_handler(continue_handler, regexp='Продолжить')
     dp.register_message_handler(exit_handler, regexp='Выход')
     dp.register_message_handler(delete_handler, regexp=r'Удалить .+')
-    # dp.register_message_handler(empty)
+    # dp.

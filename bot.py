@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from aiogram import executor
 from create_bot import dp
 from handlers import general_handlers, income_handlers, expense_handlers, report_handlers
 
@@ -15,4 +14,4 @@ expense_handlers.register_expense_handlers(dp)
 report_handlers.register_report_handlers(dp)
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+    dp.run_polling(dp, skip_updates=True, on_startup=on_startup)
