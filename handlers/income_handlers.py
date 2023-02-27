@@ -1,6 +1,7 @@
 from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import Text
+from aiogram.filters.state import State, StatesGroup
 from create_bot import bot, authentication
 from keyboards import income_kb, in_cat_kb, cancel_kb, exit_kb
 from database.orm import insert_income
@@ -47,7 +48,7 @@ async def step2(message: types.Message, state: FSMContext):
 
 def register_income_handlers(dp: Dispatcher):
     """Регистрируем хендлеры"""
-    dp.register_message_handler(add_income, regexp='Доходы')
-    dp.register_message_handler(start_income, regexp='Добавить доход', state=None)
-    dp.register_message_handler(step1, state=FSMIncome.in_category)
-    dp.register_message_handler(step2, state=FSMIncome.income_amount)
+    dp.message.register(add_income, Text(text='Доходы'))
+    dp.message.register(start_income, Text(text='Добавить доход'))
+    # dp.message.register(step1, state=FSMIncome.in_category)
+    # dp.message.register(step2, state=FSMIncome.income_amount)
