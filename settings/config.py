@@ -2,8 +2,6 @@ from dataclasses import dataclass
 import os
 import dotenv
 
-dotenv.load_dotenv()  # Для загрузки токена в окружение.
-
 
 @dataclass
 class DatabaseConfig:
@@ -25,9 +23,12 @@ class Config:
     db: DatabaseConfig
 
 
-config = Config(tg_bot=TgBot(token=os.getenv('bot_token'),
-                             users_ids=list(map(int, os.getenv('users').split(', ')))),
-                db=DatabaseConfig(database=os.getenv('DATABASE'),
-                                  db_host=os.getenv('DB_HOST'),
-                                  db_user=os.getenv('DB_USER'),
-                                  db_password=os.getenv('DB_PASSWORD')))
+def load_config() -> Config:
+    dotenv.load_dotenv()  # Для загрузки токена в окружение.
+
+    return Config(tg_bot=TgBot(token=os.getenv('bot_token'),
+                               users_ids=list(map(int, os.getenv('users').split(', ')))),
+                  db=DatabaseConfig(database=os.getenv('DATABASE'),
+                                    db_host=os.getenv('DB_HOST'),
+                                    db_user=os.getenv('DB_USER'),
+                                    db_password=os.getenv('DB_PASSWORD')))
