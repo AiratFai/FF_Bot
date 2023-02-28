@@ -1,16 +1,15 @@
 from aiogram import types, Dispatcher
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Text
+from aiogram.filters import Text, Command
 from create_bot import bot, authentication
 from keyboards import start_kb, exit_kb
 from database.orm import delete_row
 
 
 @authentication
-async def start_message(message: types.Message):
-    """Самый первый хендлер"""
-    text = f'Привет {message.from_user.first_name}, я финансовый бот для учета расходов и доходов.'
-    await bot.send_message(message.from_user.id, text, reply_markup=start_kb)
+async def process_start_command(message: types.Message):
+    text = f'Привет {message.from_user.first_name}!\nЯ финансовый бот для учета расходов и доходов.'
+    await message.answer(text, reply_markup=start_kb)
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -18,7 +17,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
-    await state.finish()
+    await state.clear()
     await message.reply('OK', reply_markup=types.ReplyKeyboardRemove())
 
 
@@ -49,10 +48,8 @@ async def delete_handler(message: types.Message):
 
 def register_general_handlers(dp: Dispatcher):
     """Функция для регистрации хендлеров"""
-    dp.register_message_handler(cancel_handler, state="*", commands='Отмена')
-    dp.register_message_handler(cancel_handler, Text(equals='Отмена', ignore_case=True), state="*")
-    dp.register_message_handler(start_message, commands=['start', 'help'])
-    dp.register_message_handler(continue_handler, regexp='Продолжить')
-    dp.register_message_handler(exit_handler, regexp='Выход')
-    dp.register_message_handler(delete_handler, regexp=r'Удалить .+')
-    # dp.
+    dp.message.register(cancel_handler, Text(text='Отмена', ignore_case=True))
+    dp.message.register(process_start_command, Command(commands=['start', 'help']))
+    dp.message.register(continue_handler, Text(text='Продолжить'))
+    dp.message.register(exit_handler, Text(text='Выход'))
+    dp.message.register(delete_handler, Text(text=r'Удалить .+'))

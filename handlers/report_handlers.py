@@ -32,61 +32,57 @@ async def get_current_balance(message: types.Message):
 
 
 #############################################################################
-@authentication
-async def in_step1(message: types.Message):
+
+async def in_step1(message: types.Message, state: FSMContext):
     """Начало диалога загрузки нового отчета"""
-    await FSMIncomeReport.rep_period.set()
     text = 'Выбери период отчета'
     await message.reply(text, reply_markup=report_cat_kb)
+    await state.set_state(FSMIncomeReport.rep_period)
 
 
 async def in_step2(message: types.Message, state: FSMContext):
     """Ловим ответ 1"""
-    async with state.proxy() as data:
-        data['rep_period'] = message.text
-    await FSMIncomeReport.next()
+    await state.update_data(rep_period=message.text)
     await message.reply('Выбери категорию дохода', reply_markup=in_cat_kb)
+    await state.set_state(FSMIncomeReport.rep_category)
 
 
 async def in_step3(message: types.Message, state: FSMContext):
     """Ловим ответ 3"""
-    async with state.proxy() as data:
-        data['rep_category'] = message.text
-    async with state.proxy() as data:
-        await message.reply(
-            f"Доходы за {data['rep_period'].lower()} составили {await get_income_report(state):,} рублей.")
+    await state.update_data(rep_category=message.text)
+    data = await state.get_data()
+    await message.reply(
+        f"Доходы за {data['rep_period'].lower()} составили {await get_income_report(data):,} рублей.")
 
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
-    await state.finish()
+    await state.clear()
 
 
 #################################################################################
-@authentication
-async def exp_step1(message: types.Message):
+
+async def exp_step1(message: types.Message, state: FSMContext):
     """Начало диалога загрузки нового отчета"""
-    await FSMIExpenseReport.exp_rep_period.set()
     text = 'Выбери период отчета'
     await message.reply(text, reply_markup=report_cat_kb)
+    await state.set_state(FSMIExpenseReport.exp_rep_period)
 
 
 async def exp_step2(message: types.Message, state: FSMContext):
     """Ловим ответ 1"""
-    async with state.proxy() as data:
-        data['rep_period'] = message.text
-    await FSMIExpenseReport.next()
+    await state.update_data(rep_period=message.text)
     await message.reply('Выбери категорию расхода', reply_markup=cat_kb)
+    await state.set_state(FSMIExpenseReport.exp_rep_category)
 
 
 async def exp_step3(message: types.Message, state: FSMContext):
     """Ловим ответ 3"""
-    async with state.proxy() as data:
-        data['exp_category'] = message.text
-    async with state.proxy() as data:
-        await message.reply(
-            f"Расходы за {data['rep_period'].lower()} составили {await get_expense_report(state):,} рублей.")
+    await state.update_data(exp_category=message.text)
+    data = await state.get_data()
+    await message.reply(
+        f"Расходы за {data['rep_period'].lower()} составили {await get_expense_report(data):,} рублей.")
 
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
-    await state.finish()
+    await state.clear()
 
 
 async def get_all_reports(message: types.Message):
@@ -114,9 +110,9 @@ def register_report_handlers(dp: Dispatcher):
     dp.message.register(start_report, Text(text='Отчеты'))
     dp.message.register(get_current_balance, Text(text='Текущий остаток'))
     dp.message.register(in_step1, Text(text='Отчеты по доходам'))
-    # dp.message.register(in_step2, state=FSMIncomeReport.rep_period)
-    # dp.message.register(in_step3, state=FSMIncomeReport.rep_category)
+    dp.message.register(in_step2, FSMIncomeReport.rep_period)
+    dp.message.register(in_step3, FSMIncomeReport.rep_category)
     dp.message.register(exp_step1, Text(text='Отчеты по расходам'))
-    # dp.message.register(exp_step2, state=FSMIExpenseReport.exp_rep_period)
-    # dp.message.register(exp_step3, state=FSMIExpenseReport.exp_rep_category)
+    dp.message.register(exp_step2, FSMIExpenseReport.exp_rep_period)
+    dp.message.register(exp_step3, FSMIExpenseReport.exp_rep_category)
     dp.message.register(get_all_reports, Text(text='Полный отчет'))

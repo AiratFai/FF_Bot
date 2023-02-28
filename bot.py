@@ -1,10 +1,5 @@
-from create_bot import dp, bot
+from create_bot import bot, dp
 from handlers import general_handlers, income_handlers, expense_handlers, report_handlers
-
-
-async def on_startup(_):
-    print('Бот вышел в онлайн')
-
 
 general_handlers.register_general_handlers(dp)
 income_handlers.register_income_handlers(dp)

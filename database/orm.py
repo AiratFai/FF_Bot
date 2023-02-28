@@ -2,9 +2,11 @@ from sqlalchemy import create_engine, select, func
 from sqlalchemy.orm import sessionmaker
 from database.models import Base, MainTable, ExpenseCategories, IncomeCategories
 from datetime import datetime
-from settings import db_config
+from settings.config import load_config
 
-engine = create_engine(db_config.url, echo=True)
+config = load_config()
+url = f'{config.db.database}://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}/{config.db.db_user}'
+engine = create_engine(url, echo=True)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -37,25 +39,21 @@ def update_balance(sign: str):
     session.commit()
 
 
-async def insert_income(state):
-    async with state.proxy() as data:
-        m1 = MainTable(income_cat_id=in_cat[data.get('in_category')],
-                       name=data.get('inc_name'),
-                       income=data.get('income_amount'))
-        session.add(m1)
-        session.commit()
-
+async def insert_income(data):
+    m1 = MainTable(income_cat_id=in_cat[data.get('in_category')],
+                   name=data.get('inc_name'),
+                   income=data.get('income_amount'))
+    session.add(m1)
+    session.commit()
     update_balance('+')
 
 
-async def insert_expense(state):
-    async with state.proxy() as data:
-        m2 = MainTable(expense_cat_id=exp_cat[data.get('exp_category')],
-                       name=data.get('exp_name'),
-                       expense=data.get('exp_amount'))
-        session.add(m2)
-        session.commit()
-
+async def insert_expense(data):
+    m2 = MainTable(expense_cat_id=exp_cat[data.get('exp_category')],
+                   name=data.get('exp_name'),
+                   expense=data.get('exp_amount'))
+    session.add(m2)
+    session.commit()
     update_balance('-')
 
 
@@ -74,30 +72,28 @@ async def get_balance_report():
     return data, balance
 
 
-async def get_income_report(state):
-    async with state.proxy() as data:
-        category = in_cat[data.get('rep_category')]
-        date = dates[data.get('rep_period')]
-        s = session.query(MainTable.income).filter(MainTable.income_cat_id == category,
-                                                   func.date_part(date[1], MainTable.date) == date[0]).all()
-        income = 0
-        for tup in s:
-            for inc in tup:
-                income += inc
-        return income
+async def get_income_report(data):
+    category = in_cat[data.get('rep_category')]
+    date = dates[data.get('rep_period')]
+    s = session.query(MainTable.income).filter(MainTable.income_cat_id == category,
+                                               func.date_part(date[1], MainTable.date) == date[0]).all()
+    income = 0
+    for tup in s:
+        for inc in tup:
+            income += inc
+    return income
 
 
-async def get_expense_report(state):
-    async with state.proxy() as data:
-        category = exp_cat[data.get('exp_category')]
-        date = dates[data.get('rep_period')]
-        s = session.query(MainTable.expense).filter(MainTable.expense_cat_id == category,
-                                                    func.date_part(date[1], MainTable.date) == date[0]).all()
-        expense = 0
-        for tup in s:
-            for exp in tup:
-                expense += exp
-        return expense
+async def get_expense_report(data):
+    category = exp_cat[data.get('exp_category')]
+    date = dates[data.get('rep_period')]
+    s = session.query(MainTable.expense).filter(MainTable.expense_cat_id == category,
+                                                func.date_part(date[1], MainTable.date) == date[0]).all()
+    expense = 0
+    for tup in s:
+        for exp in tup:
+            expense += exp
+    return expense
 
 
 def get_reports():
