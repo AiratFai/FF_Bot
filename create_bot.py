@@ -5,7 +5,7 @@ from settings.config import load_config
 
 config = load_config()
 storage = MemoryStorage()
-bot: Bot = Bot(token=config.tg_bot.token)
+bot: Bot = Bot(token=config.tg_bot.token, parse_mode='HTML')
 dp: Dispatcher = Dispatcher(storage=storage)
 
 
