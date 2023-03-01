@@ -99,10 +99,15 @@ async def get_all_reports(message: types.Message):
            f"Развлечения -- {d['Развлечения']} руб.\n" \
            f"Здоровье -- {d['Здоровье']} руб.\n" \
            f"Одежда -- {d['Одежда']} руб.\n" \
-           f"Айзиля -- {d['Айзиля']} руб.\n" \
+           f"Дети -- {d['Дети']} руб.\n" \
            f"Прочее -- {d['Прочее']} руб.\n"
     await bot.send_message(message.from_user.id, text)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
+
+
+# async def unknown_commands(message: types.Message):
+#     """Отлов некорректных сообщений"""
+#     await message.answer('Нет такой команды')
 
 
 def register_report_handlers(dp: Dispatcher):

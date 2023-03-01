@@ -14,7 +14,7 @@ class FSMExpense(StatesGroup):
 
 @authentication
 async def add_expense(message: types.Message):
-    text = 'Что ты хочешь сделать?'
+    text = 'Значит все-таки потратила..'
     await bot.send_message(message.from_user.id, text, reply_markup=expense_kb)
 
 

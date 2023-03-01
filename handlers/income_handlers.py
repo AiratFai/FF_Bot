@@ -14,7 +14,7 @@ class FSMIncome(StatesGroup):
 
 @authentication
 async def add_income(message: types.Message):
-    text = 'Что ты хочешь сделать?'
+    text = 'Круто! Пиши быстрее сколько заработала)'
     await bot.send_message(message.from_user.id, text, reply_markup=income_kb)
 
 

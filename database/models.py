@@ -8,7 +8,7 @@ Base = declarative_base()
 
 class ExpenseCategories(Base):
     __tablename__ = 'expense_categories'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     category_name = Column(String(30), nullable=False)
     children = relationship('MainTable', backref='parent1')
 
@@ -18,7 +18,7 @@ class ExpenseCategories(Base):
 
 class IncomeCategories(Base):
     __tablename__ = 'income_categories'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     category_name = Column(String(30), nullable=False)
     children = relationship('MainTable', backref='parent2')
 
@@ -28,7 +28,8 @@ class IncomeCategories(Base):
 
 class MainTable(Base):
     __tablename__ = 'main_table'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
+    num = Column(Integer, default=1)
     expense_cat_id = Column(Integer, ForeignKey('expense_categories.id'), nullable=True, default=None)
     income_cat_id = Column(Integer, ForeignKey('income_categories.id'), nullable=True, default=None)
     name = Column(String(60), nullable=False)
@@ -39,5 +40,3 @@ class MainTable(Base):
 
     def __repr__(self):
         return self.name
-
-

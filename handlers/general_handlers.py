@@ -7,9 +7,18 @@ from database.orm import delete_row
 
 
 @authentication
-async def process_start_command(message: types.Message):
-    text = f'Привет {message.from_user.first_name}!\nЯ финансовый бот для учета расходов и доходов.'
+async def start_command(message: types.Message):
+    text = f'Привет {message.from_user.first_name}!\nЯ финансовый бот. ' \
+           f'Надеюсь ты заработала деньги, а не портратила)'
     await message.answer(text, reply_markup=start_kb)
+
+
+async def help_command(message: types.Message):
+    text = f'Данный бот предназначен для учета семейных доходов и расходов.\n' \
+           f'Все записи введенные пользователями, которым разрешен доступ,\n' \
+           f'сохраняются в базу данных. Также пользователи могут получить\n' \
+           f'отчеты разных типов.'
+    await message.answer(text)
 
 
 async def cancel_handler(message: types.Message, state: FSMContext):
@@ -33,23 +42,19 @@ async def exit_handler(message: types.Message):
     await bot.send_message(message.from_user.id, text, reply_markup=types.ReplyKeyboardRemove())
 
 
+@authentication
 async def delete_handler(message: types.Message):
     """Удаление последней записи из базы данных"""
     await delete_row()
-    await message.reply('Последняя строка успешно удалена', reply_markup=types.ReplyKeyboardRemove())
+    await message.reply('Последняя запись успешно удалена', reply_markup=types.ReplyKeyboardRemove())
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
-
-
-# async def empty(message: types.Message):
-#     """Отлов некорректных сообщений"""
-#     await message.answer('Нет такой команды')
-#     await message.delete()
 
 
 def register_general_handlers(dp: Dispatcher):
     """Функция для регистрации хендлеров"""
     dp.message.register(cancel_handler, Text(text='Отмена', ignore_case=True))
-    dp.message.register(process_start_command, Command(commands=['start', 'help']))
+    dp.message.register(start_command, Command(commands=['start']))
+    dp.message.register(help_command, Command(commands=['help']))
     dp.message.register(continue_handler, Text(text='Продолжить'))
     dp.message.register(exit_handler, Text(text='Выход'))
-    dp.message.register(delete_handler, Text(text=r'Удалить .+'))
+    dp.message.register(delete_handler, Text(text=r'Удалить последнюю запись'))
