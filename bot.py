@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from create_bot import bot, dp
-from handlers import general_handlers, income_handlers, expense_handlers, report_handlers
+from handlers import general_handlers, income_handlers, expense_handlers, report_handlers, other_handlers
 
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ async def main():
     income_handlers.register_income_handlers(dp)
     expense_handlers.register_expense_handlers(dp)
     report_handlers.register_report_handlers(dp)
-
+    other_handlers.register_other_handler(dp)
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

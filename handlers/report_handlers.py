@@ -105,11 +105,6 @@ async def get_all_reports(message: types.Message):
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
 
 
-# async def unknown_commands(message: types.Message):
-#     """Отлов некорректных сообщений"""
-#     await message.answer('Нет такой команды')
-
-
 def register_report_handlers(dp: Dispatcher):
     """Регистрируем хендлеры"""
     dp.message.register(start_report, Text(text='Отчеты'))
