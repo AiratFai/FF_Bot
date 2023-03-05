@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher, F
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Text
+from aiogram.filters import Text, StateFilter
 from aiogram.filters.state import State, StatesGroup
 from create_bot import bot, authentication
 from keyboards import expense_kb, cat_kb, cancel_kb, exit_kb
@@ -43,9 +43,17 @@ async def step2(message: types.Message, state: FSMContext):
     await state.clear()
 
 
+async def wrong_input(message: types.Message, state: FSMContext):
+    """Ловим ошибку"""
+    await message.reply(f'Нужно сначала ввести название, и потом через пробел сумму.\n'
+                        f'Пример ввода: Любимая колбаска 350', reply_markup=cancel_kb)
+    await state.set_state(FSMExpense.exp_amount)
+
+
 def register_expense_handlers(dp: Dispatcher):
     """Регистрируем хендлеры"""
     dp.message.register(add_expense, F.text == 'Расходы')
     dp.message.register(start_expense, Text(text='Добавить расход'))
-    dp.message.register(step1, FSMExpense.exp_category)
-    dp.message.register(step2, FSMExpense.exp_amount)
+    dp.message.register(step1, StateFilter(FSMExpense.exp_category))
+    dp.message.register(step2, StateFilter(FSMExpense.exp_amount), lambda x: x.text.split()[-1].isdigit())
+    dp.message.register(wrong_input, StateFilter(FSMExpense.exp_amount), lambda x: not x.text.split()[-1].isdigit())
