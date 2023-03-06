@@ -17,7 +17,7 @@ async def main():
 
     logger.info('Starting bot')
 
-    # Регистриуем роутеры в диспетчере
+    # Регистриуем хендлеры в диспетчере
     general_handlers.register_general_handlers(dp)
     income_handlers.register_income_handlers(dp)
     expense_handlers.register_expense_handlers(dp)

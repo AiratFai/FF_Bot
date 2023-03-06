@@ -43,9 +43,23 @@ async def step2(message: types.Message, state: FSMContext):
     await state.clear()
 
 
-async def wrong_input(message: types.Message, state: FSMContext):
-    """Ловим ошибку"""
+async def wrong_input_1(message: types.Message, state: FSMContext):
+    """Ловим ошибку ввода"""
     await message.reply(f'Нужно сначала ввести название, и потом через пробел сумму.\n'
+                        f'Пример ввода: Любимая колбаска 350', reply_markup=cancel_kb)
+    await state.set_state(FSMExpense.exp_amount)
+
+
+async def wrong_input_2(message: types.Message, state: FSMContext):
+    """Ловим ошибку ввода"""
+    await message.reply(f'Вы не ввели название расхода.\n'
+                        f'Пример ввода: Любимая колбаска 350', reply_markup=cancel_kb)
+    await state.set_state(FSMExpense.exp_amount)
+
+
+async def wrong_input_3(message: types.Message, state: FSMContext):
+    """Ловим ошибку ввода"""
+    await message.reply(f'Вы не ввели сумму расхода.\n'
                         f'Пример ввода: Любимая колбаска 350', reply_markup=cancel_kb)
     await state.set_state(FSMExpense.exp_amount)
 
@@ -55,5 +69,9 @@ def register_expense_handlers(dp: Dispatcher):
     dp.message.register(add_expense, F.text == 'Расходы')
     dp.message.register(start_expense, Text(text='Добавить расход'))
     dp.message.register(step1, StateFilter(FSMExpense.exp_category))
+    dp.message.register(wrong_input_2, StateFilter(FSMExpense.exp_amount),
+                        lambda x: len(x.text.split()) == 1 and x.text.split()[-1].isdigit())
+    dp.message.register(wrong_input_3, StateFilter(FSMExpense.exp_amount),
+                        lambda x: len(x.text.split()) == 1 and not x.text.split()[-1].isdigit())
+    dp.message.register(wrong_input_1, StateFilter(FSMExpense.exp_amount), lambda x: not x.text.split()[-1].isdigit())
     dp.message.register(step2, StateFilter(FSMExpense.exp_amount), lambda x: x.text.split()[-1].isdigit())
-    dp.message.register(wrong_input, StateFilter(FSMExpense.exp_amount), lambda x: not x.text.split()[-1].isdigit())

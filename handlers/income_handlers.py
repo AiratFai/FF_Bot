@@ -43,9 +43,23 @@ async def step2(message: types.Message, state: FSMContext):
     await state.clear()
 
 
-async def wrong_input(message: types.Message, state: FSMContext):
-    """Ловим ошибку"""
+async def wrong_input_1(message: types.Message, state: FSMContext):
+    """Ловим ошибку ввода"""
     await message.reply(f'Нужно сначала ввести название, и потом через пробел сумму.\n'
+                        f'Пример ввода: Зэпэха Оуеее 100000', reply_markup=cancel_kb)
+    await state.set_state(FSMIncome.income_amount)
+
+
+async def wrong_input_2(message: types.Message, state: FSMContext):
+    """Ловим ошибку ввода"""
+    await message.reply(f'Вы не ввели название дохода.\n'
+                        f'Пример ввода: Зэпэха Оуеее 100000', reply_markup=cancel_kb)
+    await state.set_state(FSMIncome.income_amount)
+
+
+async def wrong_input_3(message: types.Message, state: FSMContext):
+    """Ловим ошибку ввода"""
+    await message.reply(f'Вы не ввели сумму дохода.\n'
                         f'Пример ввода: Зэпэха Оуеее 100000', reply_markup=cancel_kb)
     await state.set_state(FSMIncome.income_amount)
 
@@ -55,5 +69,9 @@ def register_income_handlers(dp: Dispatcher):
     dp.message.register(add_income, F.text == 'Доходы')
     dp.message.register(start_income, Text(text='Добавить доход'))
     dp.message.register(step1, FSMIncome.in_category)
+    dp.message.register(wrong_input_2, StateFilter(FSMIncome.income_amount),
+                        lambda x: len(x.text.split()) == 1 and x.text.split()[-1].isdigit())
+    dp.message.register(wrong_input_3, StateFilter(FSMIncome.income_amount),
+                        lambda x: len(x.text.split()) == 1 and not x.text.split()[-1].isdigit())
+    dp.message.register(wrong_input_1, StateFilter(FSMIncome.income_amount), lambda x: not x.text.split()[-1].isdigit())
     dp.message.register(step2, StateFilter(FSMIncome.income_amount), lambda x: x.text.split()[-1].isdigit())
-    dp.message.register(wrong_input, StateFilter(FSMIncome.income_amount), lambda x: not x.text.split()[-1].isdigit())

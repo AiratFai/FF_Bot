@@ -13,6 +13,7 @@ session = Session()
 
 
 def get_num():
+    """Генерирует правильный порядковый номер для записи в бд"""
     if list(session.scalars(select(MainTable.id))):
         last_id = max(list(session.scalars(select(MainTable.id))))
         last_rec = session.query(MainTable).get(last_id)
@@ -38,6 +39,8 @@ dates = {'Текущий месяц': (datetime.now().month, 'month'), 'Теку
 
 
 def update_balance(sign: str):
+    """Обновляет поле balance в бд после каждой записи.
+     Вместо триггера, с которым я не смог разобраться"""
     max_num = max(list(session.scalars(select(MainTable.num))))
     last_id = session.query(MainTable.id).filter(MainTable.num == max_num).first()
     last = session.query(MainTable).get(last_id[0])
@@ -55,6 +58,7 @@ def update_balance(sign: str):
 
 
 async def insert_income(data):
+    """Добавляет запись в бд"""
     m1 = MainTable(num=get_num(),
                    income_cat_id=in_cat[data.get('in_category')],
                    name=data.get('inc_name'),
@@ -65,6 +69,7 @@ async def insert_income(data):
 
 
 async def insert_expense(data):
+    """Добавляет запись в бд"""
     m2 = MainTable(num=get_num(),
                    expense_cat_id=exp_cat[data.get('exp_category')],
                    name=data.get('exp_name'),
@@ -75,6 +80,7 @@ async def insert_expense(data):
 
 
 async def delete_row():
+    """Удаляет последнюю запись из бд"""
     max_id = max(list(session.scalars(select(MainTable.id))))
     i = session.query(MainTable).filter(MainTable.id == max_id).one()
     session.delete(i)
@@ -145,3 +151,19 @@ def get_reports():
             case 11:
                 res['Прочее'] = res.get('Прочее', 0) + i.expense
     return res
+
+
+def get_all_table():
+    s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).all()
+    table = f"|{'Дата'.center(8, ' ')}|{'Название'.center(15, ' ')}|{'+/-'.center(7, ' ')}|" \
+            f"{'Остаток'.center(7, ' ')}|\n"
+    line = f"{'-' * 60}\n"
+    table += line
+    for i in s:
+        table += f"|{i.date.strftime('%d.%m.%y')}|{i.name.center(15, ' ')}|" \
+                 f"{('-' + str(i.expense)).ljust(7, ' ') if i.expense else ('+' + str(i.income)).ljust(7, ' ')}|" \
+                 f"{str(i.balance).ljust(7, ' ')}|\n"
+    return table
+
+
+

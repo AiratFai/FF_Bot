@@ -4,7 +4,7 @@ from aiogram.filters import Text
 from aiogram.filters.state import State, StatesGroup
 from keyboards import report_kb, cat_kb, report_cat_kb, in_cat_kb, exit_kb
 from create_bot import bot, authentication
-from database.orm import get_balance_report, get_income_report, get_expense_report, get_reports
+from database import orm
 
 
 class FSMIncomeReport(StatesGroup):
@@ -26,8 +26,8 @@ async def start_report(message: types.Message):
 
 async def get_current_balance(message: types.Message):
     """Узнать текущий остаток"""
-    data, balance = await get_balance_report()
-    await message.reply(f'Остаток на {data} составляет {balance:,} рублей')
+    data, balance = await orm.get_balance_report()
+    await message.reply(f'Остаток на {data} составляет <b>{balance:,}</b> рублей')
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
 
 
@@ -52,7 +52,7 @@ async def in_step3(message: types.Message, state: FSMContext):
     await state.update_data(rep_category=message.text)
     data = await state.get_data()
     await message.reply(
-        f"Доходы за {data['rep_period'].lower()} составили {await get_income_report(data):,} рублей.")
+        f"Доходы за {data['rep_period'].lower()} составили <b>{await orm.get_income_report(data):,}</b> рублей.")
 
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
     await state.clear()
@@ -79,14 +79,14 @@ async def exp_step3(message: types.Message, state: FSMContext):
     await state.update_data(exp_category=message.text)
     data = await state.get_data()
     await message.reply(
-        f"Расходы за {data['rep_period'].lower()} составили {await get_expense_report(data):,} рублей.")
+        f"Расходы за {data['rep_period'].lower()} составили <b>{await orm.get_expense_report(data):,}</b> рублей.")
 
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
     await state.clear()
 
 
 async def get_all_reports(message: types.Message):
-    d = get_reports()
+    d = orm.get_reports()
     text = f"Все доходы за текущий год -- {d['all_income']} руб.\n" \
            f"Все расходы за текущий год -- {d['all_expense']} руб.\n" \
            f"Расходы по категориям:\n" \
@@ -105,6 +105,12 @@ async def get_all_reports(message: types.Message):
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
 
 
+async def get_table(message: types.Message):
+    res = orm.get_all_table()
+    await bot.send_message(message.from_user.id, res)
+    await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
+
+
 def register_report_handlers(dp: Dispatcher):
     """Регистрируем хендлеры"""
     dp.message.register(start_report, Text(text='Отчеты'))
@@ -116,3 +122,4 @@ def register_report_handlers(dp: Dispatcher):
     dp.message.register(exp_step2, FSMIExpenseReport.exp_rep_period)
     dp.message.register(exp_step3, FSMIExpenseReport.exp_rep_category)
     dp.message.register(get_all_reports, Text(text='Полный отчет'))
+    dp.message.register(get_table, Text(text='Таблица'))

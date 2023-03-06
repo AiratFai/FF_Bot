@@ -8,7 +8,7 @@ from database.orm import delete_row
 
 @authentication
 async def start_command(message: types.Message):
-    text = f'Привет {message.from_user.first_name}!\nЯ финансовый бот. ' \
+    text = f'Привет <b><i>{message.from_user.first_name}!</i></b>\nЯ финансовый бот. ' \
            f'Надеюсь ты заработала деньги, а не портратила)'
     await message.answer(text, reply_markup=start_kb)
 
