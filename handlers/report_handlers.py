@@ -5,6 +5,7 @@ from aiogram.filters.state import State, StatesGroup
 from keyboards import report_kb, cat_kb, report_cat_kb, in_cat_kb, exit_kb
 from create_bot import bot, authentication
 from database import orm
+from utils import create_income_report_text
 
 
 class FSMIncomeReport(StatesGroup):
@@ -51,9 +52,9 @@ async def in_step3(message: types.Message, state: FSMContext):
     """Ловим ответ 3"""
     await state.update_data(rep_category=message.text)
     data = await state.get_data()
-    await message.reply(
-        f"Доходы за {data['rep_period'].lower()} составили <b>{await orm.get_income_report(data):,}</b> рублей.")
-
+    query = await orm.get_income_report(data)
+    text = await create_income_report_text(data, query)
+    await message.reply(text)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
     await state.clear()
 
@@ -86,7 +87,7 @@ async def exp_step3(message: types.Message, state: FSMContext):
 
 
 async def get_all_reports(message: types.Message):
-    d = orm.get_reports()
+    d = await orm.get_reports()
     text = f"Все доходы за текущий год -- {d['all_income']} руб.\n" \
            f"Все расходы за текущий год -- {d['all_expense']} руб.\n" \
            f"Расходы по категориям:\n" \
@@ -106,7 +107,7 @@ async def get_all_reports(message: types.Message):
 
 
 async def get_table(message: types.Message):
-    res = orm.get_all_table()
+    res = await orm.get_all_table()
     await bot.send_message(message.from_user.id, res)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
 

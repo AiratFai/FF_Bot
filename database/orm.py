@@ -12,7 +12,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-def get_num():
+async def get_num():
     """Генерирует правильный порядковый номер для записи в бд"""
     if list(session.scalars(select(MainTable.id))):
         last_id = max(list(session.scalars(select(MainTable.id))))
@@ -38,7 +38,7 @@ exp_cat = {'Продукты': 1, 'Коммуналка': 2, 'Авто': 3, 'З�
 dates = {'Текущий месяц': (datetime.now().month, 'month'), 'Текущий год': (datetime.now().year, 'year')}
 
 
-def update_balance(sign: str):
+async def update_balance(sign: str):
     """Обновляет поле balance в бд после каждой записи.
      Вместо триггера, с которым я не смог разобраться"""
     max_num = max(list(session.scalars(select(MainTable.num))))
@@ -59,24 +59,24 @@ def update_balance(sign: str):
 
 async def insert_income(data):
     """Добавляет запись в бд"""
-    m1 = MainTable(num=get_num(),
+    m1 = MainTable(num=await get_num(),
                    income_cat_id=in_cat[data.get('in_category')],
                    name=data.get('inc_name'),
                    income=data.get('income_amount'))
     session.add(m1)
     session.commit()
-    update_balance('+')
+    await update_balance('+')
 
 
 async def insert_expense(data):
     """Добавляет запись в бд"""
-    m2 = MainTable(num=get_num(),
+    m2 = MainTable(num=await get_num(),
                    expense_cat_id=exp_cat[data.get('exp_category')],
                    name=data.get('exp_name'),
                    expense=data.get('exp_amount'))
     session.add(m2)
     session.commit()
-    update_balance('-')
+    await update_balance('-')
 
 
 async def delete_row():
@@ -98,13 +98,9 @@ async def get_balance_report():
 async def get_income_report(data):
     category = in_cat[data.get('rep_category')]
     date = dates[data.get('rep_period')]
-    s = session.query(MainTable.income).filter(MainTable.income_cat_id == category,
-                                               func.date_part(date[1], MainTable.date) == date[0]).all()
-    income = 0
-    for tup in s:
-        for inc in tup:
-            income += inc
-    return income
+    s = session.query(MainTable.date, MainTable.income).filter(MainTable.income_cat_id == category,
+                                                               func.date_part(date[1], MainTable.date) == date[0]).all()
+    return s
 
 
 async def get_expense_report(data):
@@ -112,14 +108,11 @@ async def get_expense_report(data):
     date = dates[data.get('rep_period')]
     s = session.query(MainTable.expense).filter(MainTable.expense_cat_id == category,
                                                 func.date_part(date[1], MainTable.date) == date[0]).all()
-    expense = 0
-    for tup in s:
-        for exp in tup:
-            expense += exp
+    expense = sum([tup[0] for tup in s])
     return expense
 
 
-def get_reports():
+async def get_reports():
     s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).all()
     res = {'all_income': 0, 'all_expense': 0, 'Продукты': 0, 'Коммуналка': 0, 'Авто': 0, 'Заправка': 0, 'Быт_химия': 0,
            'Дом': 0, 'Развлечения': 0,
@@ -153,7 +146,7 @@ def get_reports():
     return res
 
 
-def get_all_table():
+async def get_all_table():
     s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).all()
     table = f"|{'Дата'.center(8, ' ')}|{'Название'.center(15, ' ')}|{'+/-'.center(7, ' ')}|" \
             f"{'Остаток'.center(7, ' ')}|\n"
@@ -165,5 +158,4 @@ def get_all_table():
                  f"{str(i.balance).ljust(7, ' ')}|\n"
     return table
 
-
-
+#################################################################################################################
