@@ -5,7 +5,7 @@ from aiogram.filters.state import State, StatesGroup
 from keyboards import report_kb, cat_kb, report_cat_kb, in_cat_kb, exit_kb
 from create_bot import bot, authentication
 from database import orm
-from utils import create_income_report_text
+from utils import create_income_report_text, create_table_text, create_expense_report_text
 
 
 class FSMIncomeReport(StatesGroup):
@@ -68,47 +68,37 @@ async def exp_step1(message: types.Message, state: FSMContext):
     await state.set_state(FSMIExpenseReport.exp_rep_period)
 
 
-async def exp_step2(message: types.Message, state: FSMContext):
+async def exp_step2_1(message: types.Message, state: FSMContext):
     """Ловим ответ 1"""
     await state.update_data(rep_period=message.text)
     await message.reply('Выбери категорию расхода', reply_markup=cat_kb)
     await state.set_state(FSMIExpenseReport.exp_rep_category)
 
 
-async def exp_step3(message: types.Message, state: FSMContext):
+async def exp_step2_2(message: types.Message, state: FSMContext):
     """Ловим ответ 3"""
-    await state.update_data(exp_category=message.text)
+    await state.update_data(rep_period=message.text)
     data = await state.get_data()
-    await message.reply(
-        f"Расходы за {data['rep_period'].lower()} составили <b>{await orm.get_expense_report(data):,}</b> рублей.")
-
+    text = await create_expense_report_text(data)
+    await message.reply(text)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
     await state.clear()
 
 
-async def get_all_reports(message: types.Message):
-    d = await orm.get_reports()
-    text = f"Все доходы за текущий год -- {d['all_income']} руб.\n" \
-           f"Все расходы за текущий год -- {d['all_expense']} руб.\n" \
-           f"Расходы по категориям:\n" \
-           f"Продукты -- {d['Продукты']} руб.\n" \
-           f"Коммуналка -- {d['Коммуналка']} руб.\n" \
-           f"Авто -- {d['Авто']} руб.\n" \
-           f"Заправка -- {d['Заправка']} руб.\n" \
-           f"Быт_химия -- {d['Быт_химия']} руб.\n" \
-           f"Дом -- {d['Дом']} руб.\n" \
-           f"Развлечения -- {d['Развлечения']} руб.\n" \
-           f"Здоровье -- {d['Здоровье']} руб.\n" \
-           f"Одежда -- {d['Одежда']} руб.\n" \
-           f"Дети -- {d['Дети']} руб.\n" \
-           f"Прочее -- {d['Прочее']} руб.\n"
-    await bot.send_message(message.from_user.id, text)
+async def exp_step3(message: types.Message, state: FSMContext):
+    """Ловим ответ 3"""
+    await state.update_data(exp_category=message.text)
+    data = await state.get_data()
+    text = await create_expense_report_text(data)
+    await message.reply(text)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
+    await state.clear()
 
 
 async def get_table(message: types.Message):
-    res = await orm.get_all_table()
-    await bot.send_message(message.from_user.id, res)
+    query = await orm.get_all_table()
+    text = await create_table_text(query)
+    await bot.send_message(message.from_user.id, text)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
 
 
@@ -120,7 +110,7 @@ def register_report_handlers(dp: Dispatcher):
     dp.message.register(in_step2, FSMIncomeReport.rep_period)
     dp.message.register(in_step3, FSMIncomeReport.rep_category)
     dp.message.register(exp_step1, Text(text='Отчеты по расходам'))
-    dp.message.register(exp_step2, FSMIExpenseReport.exp_rep_period)
+    dp.message.register(exp_step2_1, FSMIExpenseReport.exp_rep_period, lambda x: x.text == 'Текущий месяц')
+    dp.message.register(exp_step2_2, FSMIExpenseReport.exp_rep_period, lambda x: x.text == 'Текущий год')
     dp.message.register(exp_step3, FSMIExpenseReport.exp_rep_category)
-    dp.message.register(get_all_reports, Text(text='Полный отчет'))
     dp.message.register(get_table, Text(text='Таблица'))

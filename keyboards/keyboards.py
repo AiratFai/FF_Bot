@@ -25,7 +25,7 @@ cat_kb = ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 report_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=word)] for word in
                                           ['Текущий остаток', 'Отчеты по доходам', 'Отчеты по расходам',
-                                           'Полный отчет', 'Таблица']], resize_keyboard=True)
+                                           'Таблица']], resize_keyboard=True)
 
 report_cat_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=word) for word in ['Текущий месяц', 'Текущий год']]],
                                     resize_keyboard=True)
