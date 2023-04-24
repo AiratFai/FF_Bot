@@ -4,7 +4,10 @@ from aiogram.filters import Text, Command
 from create_bot import bot, authentication
 from keyboards import start_kb, exit_kb
 from database.orm import delete_row
+from settings.config import load_config
 
+
+conf = load_config()
 
 @authentication
 async def start_command(message: types.Message):
@@ -61,5 +64,5 @@ def register_general_handlers(dp: Dispatcher):
 
 
 async def reminder():
-    for user_id in [1417258138, 5140587665]:
+    for user_id in conf.tg_bot.users_ids:
         await bot.send_message(user_id, 'Пора записать расходы!')
