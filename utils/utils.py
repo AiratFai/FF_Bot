@@ -29,7 +29,7 @@ async def create_income_report_text(data, query_res):
                f"{'-' * 60}\n" \
                f"Доходы по месяцам:\n"
         for k, v in od.items():
-            text += f"{month_names[k]} -- <b>{v:,}</b> рублей"
+            text += f"{month_names[k]} -- <b>{v:,}</b> рублей\n"
     return text
 
 

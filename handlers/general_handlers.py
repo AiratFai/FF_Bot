@@ -58,3 +58,8 @@ def register_general_handlers(dp: Dispatcher):
     dp.message.register(continue_handler, Text(text='Продолжить'))
     dp.message.register(exit_handler, Text(text='Выход'))
     dp.message.register(delete_handler, Text(text=r'Удалить последнюю запись'))
+
+
+async def reminder():
+    for user_id in [1417258138, 5140587665]:
+        await bot.send_message(user_id, 'Пора записать расходы!')

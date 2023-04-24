@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, select, func
+from sqlalchemy import create_engine, select, func, desc
 from sqlalchemy.orm import sessionmaker
 from database.models import Base, MainTable, ExpenseCategories, IncomeCategories
 from datetime import datetime
@@ -111,8 +111,13 @@ async def get_expense_report(data):
     return s
 
 
-async def get_all_table():
-    s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).all()
+async def get_all_table(lim: int = None):
+    if lim is None:
+        s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).order_by(
+            desc(MainTable.date)).all()
+    else:
+        s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).order_by(
+            desc(MainTable.date)).limit(lim).all()
     return s
 
 #################################################################################################################

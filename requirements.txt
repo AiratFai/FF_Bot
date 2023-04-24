@@ -3,3 +3,4 @@ aiogram~=3.0.0b7
 psycopg2
 python-dotenv~=1.0.0
 pytest
+APScheduler~=3.10.1

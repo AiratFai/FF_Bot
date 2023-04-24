@@ -96,7 +96,7 @@ async def exp_step3(message: types.Message, state: FSMContext):
 
 
 async def get_table(message: types.Message):
-    query = await orm.get_all_table()
+    query = await orm.get_all_table(50)
     text = await create_table_text(query)
     await bot.send_message(message.from_user.id, text)
     await bot.send_message(message.from_user.id, 'Продолжить работу?', reply_markup=exit_kb)
