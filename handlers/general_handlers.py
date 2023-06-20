@@ -6,13 +6,13 @@ from keyboards import start_kb, exit_kb
 from database.orm import delete_row
 from settings.config import load_config
 
-
 conf = load_config()
+
 
 @authentication
 async def start_command(message: types.Message):
     text = f'Привет <b><i>{message.from_user.first_name}!</i></b>\nЯ финансовый бот. ' \
-           f'Надеюсь ты заработала деньги, а не портратила)'
+           f'Надеюсь ты заработала деньги, а не потратила)'
     await message.answer(text, reply_markup=start_kb)
 
 
@@ -41,7 +41,7 @@ async def continue_handler(message: types.Message):
 
 async def exit_handler(message: types.Message):
     """Выход"""
-    text = 'Давай досвидания!'
+    text = 'Давай до свидания!'
     await bot.send_message(message.from_user.id, text, reply_markup=types.ReplyKeyboardRemove())
 
 

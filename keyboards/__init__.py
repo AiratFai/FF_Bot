@@ -6,4 +6,5 @@ from keyboards.keyboards import in_cat_kb
 from keyboards.keyboards import cancel_kb
 from keyboards.keyboards import cat_kb
 from keyboards.keyboards import exit_kb
-from keyboards.keyboards import report_cat_kb
+from keyboards.keyboards import exp_report_cat_kb
+from keyboards.keyboards import inc_report_cat_kb

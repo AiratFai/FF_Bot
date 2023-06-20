@@ -106,15 +106,21 @@ async def get_income_report(data):
 async def get_expense_report(data):
     category = exp_cat[data.get('exp_category')]
     date = dates[data.get('rep_period')]
-    s = session.query(MainTable.expense).filter(MainTable.expense_cat_id == category,
-                                                func.date_part(date[1], MainTable.date) == date[0]).all()
+    s = session.query(MainTable.date, MainTable.expense).filter(MainTable.expense_cat_id == category,
+                                                                func.date_part(date[1], MainTable.date) == date[
+                                                                    0]).all()
     return s
 
 
-async def get_all_table(lim: int = None):
+async def get_all_table(lim: int = None, one_category: int = False):
     if lim is None:
-        s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).order_by(
-            desc(MainTable.date)).all()
+        if one_category:
+            s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year,
+                                                MainTable.expense_cat_id == one_category).order_by(
+                desc(MainTable.date)).all()
+        else:
+            s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).order_by(
+                desc(MainTable.date)).all()
     else:
         s = session.query(MainTable).filter(func.date_part('year', MainTable.date) == datetime.now().year).order_by(
             desc(MainTable.date)).limit(lim).all()

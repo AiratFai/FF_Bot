@@ -16,10 +16,12 @@ month_names = {1: 'Январь',
 
 
 async def create_income_report_text(data, query_res):
+    print('TEST', data.get('rep_period'))
     text = ''
     if data.get('rep_period') == 'Текущий месяц':
         income = sum([tup[1] for tup in query_res])
         text = f"Доходы за {data['rep_period'].lower()} составили <b>{income:,}</b> рублей."
+
     if data.get('rep_period') == 'Текущий год':
         year_income = sum([tup[1] for tup in query_res])
         od = defaultdict(int)
@@ -30,6 +32,23 @@ async def create_income_report_text(data, query_res):
                f"Доходы по месяцам:\n"
         for k, v in od.items():
             text += f"{month_names[k]} -- <b>{v:,}</b> рублей\n"
+
+    if data.get('rep_period') == 'Все доходы':
+        query_res = await orm.get_all_table()  # ЗАПРОС НУЖНО УБРАТЬ!!!
+        res = {'all_income': 0, 'Зарплата': 0, 'Прочее': 0}
+        for i in query_res:
+            res['all_income'] = res.get('all_income', 0) + i.income
+            match i.income_cat_id:
+                case 1:
+                    res['Зарплата'] = res.get('Зарплата', 0) + i.income
+                case 2:
+                    res['Прочее'] = res.get('Прочее', 0) + i.income
+
+        text = f"Все доходы за текущий год -- {res['all_income']} руб.\n" \
+               f"{'-' * 60}\n" \
+               f"Доходы по категориям:\n" \
+               f"Зарплата -- {res['Зарплата']} руб.\n" \
+               f"Прочее -- {res['Прочее']} руб.\n"
     return text
 
 
@@ -44,14 +63,23 @@ async def create_table_text(query_res):
     return table
 
 
-async def create_expense_report_text(data):
+async def create_expense_report_text(data, query_res):
     text = ''
     if data.get('rep_period') == 'Текущий месяц':
-        query_res = await orm.get_expense_report(data)
-        expense = sum([tup[0] for tup in query_res])
+        expense = sum([tup[1] for tup in query_res])
         text = f"Расходы за {data['rep_period'].lower()} составили <b>{expense:,}</b> рублей."
+
     if data.get('rep_period') == 'Текущий год':
-        query_res = await orm.get_all_table()
+        od = defaultdict(int)
+        for inc in query_res:
+            print('TEST', inc)
+            od[inc[0].month] += inc[1]
+        text = f"Расходы  категории {data.get('exp_category')} по месяцам:\n"
+        for k, v in od.items():
+            text += f"{month_names[k]} -- <b>{v:,}</b> рублей\n"
+
+    if data.get('rep_period') == 'Все расходы':
+        query_res = await orm.get_all_table()  # ЗАПРОС НУЖНО УБРАТЬ!!!
         res = {'all_expense': 0, 'Продукты': 0, 'Коммуналка': 0, 'Авто': 0, 'Заправка': 0, 'Быт_химия': 0,
                'Дом': 0, 'Развлечения': 0, 'Здоровье': 0, 'Одежда': 0, 'Дети': 0, 'Прочее': 0}
         for i in query_res:

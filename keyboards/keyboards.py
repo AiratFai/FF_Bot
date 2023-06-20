@@ -27,8 +27,13 @@ report_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=word)] for word i
                                           ['Текущий остаток', 'Отчеты по доходам', 'Отчеты по расходам',
                                            'Таблица']], resize_keyboard=True)
 
-report_cat_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=word) for word in ['Текущий месяц', 'Текущий год']]],
-                                    resize_keyboard=True)
+exp_report_cat_kb = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text=word) for word in ['Текущий месяц', 'Текущий год', 'Все расходы']]],
+    resize_keyboard=True)
+
+inc_report_cat_kb = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text=word) for word in ['Текущий месяц', 'Текущий год', 'Все доходы']]],
+    resize_keyboard=True)
 
 exit_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=word) for word in ['Продолжить', 'Выход']]],
                               resize_keyboard=True)
